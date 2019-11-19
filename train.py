@@ -11,6 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 from pathlib import Path
+from tqdm import tqdm
 
 from made import MADE
 from constants import *
@@ -35,8 +36,9 @@ def run_epoch(split, upto=None, save_loc=""):
         xbhat = torch.zeros_like(xb)
         for s in range(nsamples):
             # perform order/connectivity-agnostic training by resampling the masks
+            model.update_masks(resample_hidden_masks=False)
             if step % args.resample_every == 0 or split == 'test': # if in test, cycle masks every time
-                model.update_masks()
+                model.update_masks(resample_hidden_masks=True)
             # forward the model
             xbhat += model(xb)
         xbhat /= nsamples
@@ -56,7 +58,7 @@ def run_epoch(split, upto=None, save_loc=""):
         torch.save(model, save_loc)
         print('Model parameters saved to ' + str(save_loc))
         
-    print("%s epoch average loss: %f" % (split, np.mean(lossfs)))
+    # print("%s epoch average loss: %f" % (split, np.mean(lossfs)))
 # ------------------------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -87,7 +89,7 @@ if __name__ == '__main__':
 
     # construct model and ship to GPU
     hidden_list = list(map(int, args.hiddens.split(',')))
-    model = MADE(xtr.size(1), hidden_list, xtr.size(1), num_masks=args.num_masks, natural_ordering=True) # TODO: natural_ordering
+    model = MADE(xtr.size(1), hidden_list, xtr.size(1), num_masks=args.num_masks, orderings=MNIST_ORDERINGS) # TODO: natural_ordering
     print("number of model parameters:",sum([np.prod(p.size()) for p in model.parameters()]))
     model.cuda()
 
@@ -96,8 +98,8 @@ if __name__ == '__main__':
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=45, gamma=0.1)
     
     # start the training
-    for epoch in range(100):
-        print("epoch %d" % (epoch, ))
+    for epoch in tqdm(range(100)):
+        # print("epoch %d" % (epoch, ))
         run_epoch('test', upto=5) # run only a few batches for approximate test accuracy
         scheduler.step(epoch)
         save_loc = save_path / f'{epoch:03d}_params.pt' if (epoch + 1) % 20 == 0 else ''

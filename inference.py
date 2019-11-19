@@ -5,6 +5,7 @@ from pathlib import Path
 from torch.distributions.bernoulli import Bernoulli
 import torch.nn.functional as F
 from constants import *
+from util import *
 
 
 class Inference:
@@ -13,42 +14,78 @@ class Inference:
 
 		self.model = torch.load(Path('./checkpoints') / exp / ckpt)
 		self.model = self.model.cuda()
-
-		# load the dataset
-		mnist = np.load(DATA_PATH)
-		self.xtr, self.xte = mnist['train_data'], mnist['valid_data']
-		self.xtr = torch.from_numpy(self.xtr).cuda() # [50000, 784]
-		self.xte = torch.from_numpy(self.xte).cuda() # [10000, 784]
-
 		self.model.eval()
 
-		# plt.imshow(xtr[1000:1016].view(4, 28*4, 28).transpose(0,1).reshape(4*28, 4*28).cpu().numpy(), cmap='gray')
-		# plt.show()
 
-	def sample_single_order(self, B):
+	def sample_single_ordering(self, B):
 		'''Autoregressively samples a batch of size B with a single ordering.'''
 
-		ordering = self.model.m[-1]
+		flip_order = [i for _, i in sorted(zip(self.model.m[-1], list(range(784))))]
 
 		x = torch.zeros((B, 784), dtype=torch.float32).cuda()
 		for i in range(784):
-			y = self.model(x)
-			logits = y[:, ordering[i]]
+			y = 0
+			for j in range(self.model.num_masks): # average over all masks
+				self.model.update_masks(resample_hidden_masks=True, resample_ordering=False)
+				y += self.model(x)
+			y /= self.model.num_masks
+			logits = y[:, flip_order[i]]
 			B = Bernoulli(torch.sigmoid(logits))
 			sample = B.sample()
-			x[:, ordering[i]] = sample
+			x[:, flip_order[i]] = sample
 
 		return x
 
-# TODO:
-# - Autoregressive sampling
-# - Fixed orders
-# - Occlusion fixing tests
+
+	def fill_occlusion(self, inp, occ):
+		'''
+		Fill occlusion over all images in inp using the best possible ordering.
+
+		inp (torch.Tensor): (B, 784) collection of images to run on.
+		occ (torch.Tensor): (784,) occlusion mask.  1 means occluded, 0 means not.
+		'''
+
+		x = inp * (1 - occ)
+		best_ordering = None
+		best_score = -1
+		for i in range(len(self.model.orderings)):
+			ordering = self.model.orderings[i]
+			flip_order = flip_ordering(ordering)
+			count = 0
+			while occ[flip_order[count]] == 0:
+				count += 1
+			# print(i, count)
+			if count > best_score:
+				# print("Hi!")
+				best_score = count
+				best_ordering = ordering
+				best_i = i
+
+		# print('Using ordering ', best_i)
+
+		self.model.update_masks(use_ordering=best_ordering)
+
+		flip_order = flip_ordering(best_ordering)
+		for i in range(784):
+			if occ[flip_order[i]] == 0:
+				continue # we only want to sample if the pixel is occluded
+			y = 0
+			for j in range(self.model.num_masks): # average over all masks
+				self.model.update_masks(resample_hidden_masks=True, resample_ordering=False)
+				y += self.model(x)
+			y /= self.model.num_masks
+			logits = y[:, flip_order[i]]
+			B = Bernoulli(torch.sigmoid(logits))
+			sample = B.sample()
+			x[:, flip_order[i]] = sample
+
+		return x
+
 
 if __name__ == '__main__':
-	I = Inference('made_made_natural_ordering', '099_params.pt')
+	I = Inference('made_more_hiddens_8_orderings', '059_params.pt')
 	# import pdb; pdb.set_trace()
-	x = I.sample_single_order(16)
+	x = I.sample_single_ordering(16)
 	vis = x.view(4, 28*4, 28).transpose(0,1).reshape(4*28, 4*28)
 	plt.imshow(vis.cpu().numpy(), cmap='gray')
 	plt.show()

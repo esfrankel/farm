@@ -8,6 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import random
 
 # ------------------------------------------------------------------------------
 
@@ -25,7 +26,7 @@ class MaskedLinear(nn.Linear):
         return F.linear(input, self.mask * self.weight, self.bias)
 
 class MADE(nn.Module):
-    def __init__(self, nin, hidden_sizes, nout, num_masks=1, natural_ordering=False):
+    def __init__(self, nin, hidden_sizes, nout, num_masks=1, natural_ordering=False, orderings=None):
         """
         nin: integer; number of inputs
         hidden sizes: a list of integers; number of units in hidden layers
@@ -56,16 +57,17 @@ class MADE(nn.Module):
         self.net = nn.Sequential(*self.net)
         
         # seeds for orders/connectivities of the model ensemble
+        self.orderings = orderings
         self.natural_ordering = natural_ordering
         self.num_masks = num_masks
         self.seed = 0 # for cycling through num_masks orderings
         
         self.m = {}
-        self.update_masks() # builds the initial self.m connectivity
+        self.update_masks(resample_hidden_masks=True) # builds the initial self.m connectivity
         # note, we could also precompute the masks and cache them, but this
         # could get memory expensive for large number of masks.
         
-    def update_masks(self):
+    def update_masks(self, resample_hidden_masks=False, resample_ordering=True, use_ordering=None):
         if self.m and self.num_masks == 1: return # only a single seed, skip for efficiency
         L = len(self.hidden_sizes)
         
@@ -74,9 +76,17 @@ class MADE(nn.Module):
         self.seed = (self.seed + 1) % self.num_masks
         
         # sample the order of the inputs and the connectivity of all neurons
-        self.m[-1] = np.arange(self.nin) if self.natural_ordering else rng.permutation(self.nin)
-        for l in range(L):
-            self.m[l] = rng.randint(self.m[l-1].min(), self.nin-1, size=self.hidden_sizes[l])
+        if resample_ordering:
+            # self.m[-1][i] = j means that the ith pixel is in the jth postition of the ordering
+            if self.orderings is not None:
+                self.m[-1] = self.orderings[random.randint(0, len(self.orderings)-1)]
+                if use_ordering is not None:
+                    self.m[-1] = use_ordering
+            else:
+                self.m[-1] = np.arange(self.nin) if self.natural_ordering else rng.permutation(self.nin)
+        if resample_hidden_masks:
+            for l in range(L):
+                self.m[l] = rng.randint(self.m[l-1].min(), self.nin-1, size=self.hidden_sizes[l])
         
         # construct the mask matrices
         masks = [self.m[l-1][:,None] <= self.m[l][None,:] for l in range(L)]
