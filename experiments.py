@@ -21,8 +21,8 @@ xte = torch.from_numpy(xte).cuda() # [10000, 784]
 
 def occlusion_experiment():
 
-	I_1 = Inference('made_one_ordering_1', '059_params.pt')
-	I_m = Inference('made_many_ordering_1', '059_params.pt')
+	I_1 = Inference('made_eric_run', '059_params.pt')
+	I_m = Inference('made_eric_run_many', '059_params.pt')
 
 	k = 5
 	B = k**2 # each occlusion mask is tested over B images
