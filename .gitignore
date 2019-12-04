@@ -1,3 +1,4 @@
 *.npy
 *.npz
 /checkpoints/*
+__pycache__
