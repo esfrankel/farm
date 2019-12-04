@@ -81,6 +81,53 @@ class Inference:
 
 		return x
 
+	def create_image_multiple_orderings(self, B):
+		'''
+		B (number): batch size B.
+		'''
+		flipped_orderings = []
+		for i in range(len(self.model.orderings)):
+			ordering = self.model.orderings[i]
+			flipped_order = flip_ordering(ordering)
+			flipped_orderings.append(flipped_order)
+
+		order_index_tracker = zeros(len(self.model.orderings)) # tracks what index of the ordering each ordering is at
+		fill_track = np.zeros(784) # tracks how much of the image is filled, 1 is filled
+
+		x = torch.zeros((B, 784), dtype=torch.float32).cuda()
+		while sum(fill_track) < 784: # not entirely filled
+			for i in range(len(self.model.orderings)):
+				if sum(fill_track) >= 784: # if the image just got filled on the last pass
+					return x
+
+				flipped_order = flipped_orderings[i]
+				ordering_index = order_index_tracker[i]
+
+				if ordering_index == 784: # will get out of bounds error for fill_track; this ordering is done
+					continue
+
+				curr_fill_val = flipped_order[ordering_index]
+
+				while fill_track[curr_fill_val] == 1: # if it's already filled
+					order_index_tracker[i] += 1
+					ordering_index = order_index_tracker[i]
+					if ordering_index == 784:
+						break #we are going to run into an error if we try and call index of fill_track
+
+					curr_fill_val = flipped_order[ordering_index]
+
+				if ordering_index == 784: # will get out of bounds error for fill_track; this ordering is done
+					continue
+
+				y = self.model(x)
+				logits = y[:, curr_fill_val]
+				B = Bernoulli(torch.sigmoid(logits))
+				sample = B.sample()
+				x[:, curr_fill_val] = sample
+				
+				fill_track[curr_fill_val] = 1
+
+		return x
 
 if __name__ == '__main__':
 	I = Inference('made_more_hiddens_8_orderings', '059_params.pt')

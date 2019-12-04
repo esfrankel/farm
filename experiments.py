@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 import pickle
 
+from time import time
 
 # load the dataset
 mnist = np.load(DATA_PATH)
@@ -72,6 +73,18 @@ def occlusion_experiment():
 	f = open('exp_data_flush_botright.pkl', 'wb')
 	pickle.dump(data, f)
 	f.close()
+
+def generate_experiment():
+	I_1 = Inference('made_eric_run', '059_params.pt')
+	I_m = Inference('made_eric_run_many', '059_params.pt')
+
+	curr_time = time.now()
+	I_1.create_image_multiple_orderings()
+	print("Time taken is {}".format(time.now() - curr_time))
+
+	curr_time = time.now()
+	I_m.create_image_multiple_orderings()
+	print("Time taken is {}".format(time.now() - curr_time))
 
 
 if __name__ == '__main__':
