@@ -4,6 +4,7 @@ import numpy as numpy
 
 from made import MADE
 from inference import Inference
+from eric_inference import Inference as Eric_Inference
 from constants import *
 from util import *
 from tqdm import tqdm
@@ -77,11 +78,13 @@ def occlusion_experiment():
 def generate_experiment():
 	I_1 = Inference('made_eric_one_orderings', '059_params.pt')
 	I_m = Inference('made_eric_eight_orderings', '059_params.pt')
-
+	
+	print('Exp1')
 	curr_time = time()
 	x1 = I_1.create_image_multiple_orderings(8)
 	print("Time taken is {}".format(time() - curr_time))
 
+	print('Exp2')
 	curr_time = time()
 	x2 = I_m.create_image_multiple_orderings(8)
 	print("Time taken is {}".format(time() - curr_time))
@@ -91,7 +94,21 @@ def generate_experiment():
 	plt.clf()
 	plt.imshow(x2_vis.to_numpy(), cmap='gray')
 	plt.savefig('./vis/gen_exp2.png')
-	plt.clf()
+	plt.cllf()
+def eric_generate_exp():
+	I_a = Eric_Inference('made_one_ordering_ten_masks', '059_params.pt')
+	I_b = Eric_Inference('made_two_ordering_ten_masks', '059_params.pt')
+	
+	print('Exp1')
+	curr_time = time()
+	I_a.create_image_multiple_orderings()
+	print("Time taken is {}".format(time() - curr_time))
+
+	print('Exp2')
+	curr_time = time()
+	I_b.create_image_multiple_orderings()
+	print("Time taken is {}".format(time() - curr_time))
+
 
 if __name__ == '__main__':
-	generate_experiment()
+	eric_generate_exp()
