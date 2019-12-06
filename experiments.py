@@ -75,17 +75,23 @@ def occlusion_experiment():
 	f.close()
 
 def generate_experiment():
-	I_1 = Inference('made_eric_run', '059_params.pt')
-	I_m = Inference('made_eric_run_many', '059_params.pt')
+	I_1 = Inference('made_eric_one_orderings', '059_params.pt')
+	I_m = Inference('made_eric_eight_orderings', '059_params.pt')
 
-	curr_time = time.now()
-	I_1.create_image_multiple_orderings()
-	print("Time taken is {}".format(time.now() - curr_time))
+	curr_time = time()
+	x1 = I_1.create_image_multiple_orderings(8)
+	print("Time taken is {}".format(time() - curr_time))
 
-	curr_time = time.now()
-	I_m.create_image_multiple_orderings()
-	print("Time taken is {}".format(time.now() - curr_time))
+	curr_time = time()
+	x2 = I_m.create_image_multiple_orderings(8)
+	print("Time taken is {}".format(time() - curr_time))
 
+	plt.imshow(x1_vis.to_numpy(), cmap='gray')
+	plt.savefig('./vis/gen_exp1.png')
+	plt.clf()
+	plt.imshow(x2_vis.to_numpy(), cmap='gray')
+	plt.savefig('./vis/gen_exp2.png')
+	plt.clf()
 
 if __name__ == '__main__':
-	occlusion_experiment()
+	generate_experiment()
