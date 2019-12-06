@@ -13,7 +13,6 @@ import multiprocessing as mp
 class Inference:
 
 	def __init__(self, exp, ckpt):
-
 		self.model = torch.load(Path('./checkpoints') / exp / ckpt)
 		self.model = self.model.cuda()
 		self.model.eval()
