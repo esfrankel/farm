@@ -6,8 +6,6 @@ from torch.distributions.bernoulli import Bernoulli
 import torch.nn.functional as F
 from constants import *
 from util import *
-import multprocessing as mp
-from multiprocessing import Process, Manager
 
 
 class Inference:
@@ -18,39 +16,9 @@ class Inference:
 		self.model = self.model.cuda()
 		self.model.eval()
 
-		flipped_orderings = []
-		for in range(len(self.model.orderings)):
-			ordering = self.model.orderings[i]
-			flipped_order  flip_ordering(ordering)
-			flipped_orderings.append(flipped_order)
-
-		self.flipped_orderings
-
-	def fill_image(image, track, i):
-		ordering = self.flipped_orderings[i]
-		while np.sum(list(track)) < 784:
-			index = ordering[0]
-			while track[index] == 1:
-				if len(ordering) == 1:
-					return
-
-				ordering = ordering[1:]
-				index = ordering[0]
-
-			y = self.model(np.asarray(image))
-			logits = y[index]
-
-			B = Bernoulli(torch.sigmoid(logits))
-			sample = B.sample()
-			image[index] = sample
-			track[index] = 1
-
-		return
 
 	def sample_single_ordering(self, B):
-		'''
-		Autoregressively samples a batch of size B with a single ordering.
-		'''
+		'''Autoregressively samples a batch of size B with a single ordering.'''
 
 		flip_order = [i for _, i in sorted(zip(self.model.m[-1], list(range(784))))]
 
@@ -123,9 +91,9 @@ class Inference:
 			flipped_order = flip_ordering(ordering)
 			flipped_orderings.append(flipped_order)
 
-		order_index_tracker = np.zeros(len(self.model.orderings)) # tracks what index of the ordering each ordering is at
+		order_index_tracker = zeros(len(self.model.orderings)) # tracks what index of the ordering each ordering is at
 		fill_track = np.zeros(784) # tracks how much of the image is filled, 1 is filled
-		print(len(self.model.orderings))
+
 		x = torch.zeros((B, 784), dtype=torch.float32).cuda()
 		while sum(fill_track) < 784: # not entirely filled
 			for i in range(len(self.model.orderings)):
@@ -133,7 +101,8 @@ class Inference:
 					return x
 
 				flipped_order = flipped_orderings[i]
-				ordering_index = int(order_index_tracker[i])
+				ordering_index = order_index_tracker[i]
+
 				if ordering_index == 784: # will get out of bounds error for fill_track; this ordering is done
 					continue
 
@@ -141,7 +110,7 @@ class Inference:
 
 				while fill_track[curr_fill_val] == 1: # if it's already filled
 					order_index_tracker[i] += 1
-					ordering_index = int(order_index_tracker[i])
+					ordering_index = order_index_tracker[i]
 					if ordering_index == 784:
 						break #we are going to run into an error if we try and call index of fill_track
 
@@ -159,26 +128,6 @@ class Inference:
 				fill_track[curr_fill_val] = 1
 
 		return x
-
-	def create_image_m_orderings_eric(self):
-		mp.set_start_method('spawn')
-		num_workers = len(self.model.orderings)
-
-		manager = Manager()
-		image = np.zeros(784)
-		track = np.zeros(784)
-
-		pool = []
-		for i in range(num_workers):
-			p = Process(target = fill_image, args=(image, track, i))
-			p.start()
-			pool.append(p)
-
-		for p in pool:
-			p.join()
-
-		image = torch.from_numpy(np.asarray(list(image)))
-		return image
 
 if __name__ == '__main__':
 	I = Inference('made_more_hiddens_8_orderings', '059_params.pt')

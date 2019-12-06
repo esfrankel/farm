@@ -78,7 +78,7 @@ def occlusion_experiment():
 def generate_experiment():
 	I_1 = Inference('made_eric_one_orderings', '059_params.pt')
 	I_m = Inference('made_eric_eight_orderings', '059_params.pt')
-	
+
 	print('Exp1')
 	curr_time = time()
 	x1 = I_1.create_image_multiple_orderings(8)
@@ -96,9 +96,9 @@ def generate_experiment():
 	plt.savefig('./vis/gen_exp2.png')
 	plt.cllf()
 def eric_generate_exp():
-	I_a = Eric_Inference('made_one_ordering_ten_masks', '059_params.pt')
-	I_b = Eric_Inference('made_two_ordering_ten_masks', '059_params.pt')
-	
+	I_a = Inference('made_one_ordering_ten_masks', '059_params.pt')
+	I_b = Inference('made_two_ordering_ten_masks', '059_params.pt')
+
 	print('Exp1')
 	curr_time = time()
 	I_a.create_image_multiple_orderings()
