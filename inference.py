@@ -6,6 +6,8 @@ from torch.distributions.bernoulli import Bernoulli
 import torch.nn.functional as F
 from constants import *
 from util import *
+import multprocessing as mp
+from multiprocessing import Process, Manager
 
 
 class Inference:
@@ -16,9 +18,39 @@ class Inference:
 		self.model = self.model.cuda()
 		self.model.eval()
 
+		flipped_orderings = []
+		for in range(len(self.model.orderings)):
+			ordering = self.model.orderings[i]
+			flipped_order  flip_ordering(ordering)
+			flipped_orderings.append(flipped_order)
+
+		self.flipped_orderings
+
+	def fill_image(image, track, i):
+		ordering = self.flipped_orderings[i]
+		while np.sum(list(track)) < 784:
+			index = ordering[0]
+			while track[index] == 1:
+				if len(ordering) == 1:
+					return
+
+				ordering = ordering[1:]
+				index = ordering[0]
+
+			y = self.model(np.asarray(image))
+			logits = y[index]
+
+			B = Bernoulli(torch.sigmoid(logits))
+			sample = B.sample()
+			image[index] = sample
+			track[index] = 1
+
+		return
 
 	def sample_single_ordering(self, B):
-		'''Autoregressively samples a batch of size B with a single ordering.'''
+		'''
+		Autoregressively samples a batch of size B with a single ordering.
+		'''
 
 		flip_order = [i for _, i in sorted(zip(self.model.m[-1], list(range(784))))]
 
@@ -104,7 +136,7 @@ class Inference:
 				ordering_index = int(order_index_tracker[i])
 				if ordering_index == 784: # will get out of bounds error for fill_track; this ordering is done
 					continue
-				
+
 				curr_fill_val = flipped_order[ordering_index]
 
 				while fill_track[curr_fill_val] == 1: # if it's already filled
@@ -123,10 +155,30 @@ class Inference:
 				B = Bernoulli(torch.sigmoid(logits))
 				sample = B.sample()
 				x[:, curr_fill_val] = sample
-				
+
 				fill_track[curr_fill_val] = 1
 
 		return x
+
+	def create_image_m_orderings_eric(self):
+		mp.set_start_method('spawn')
+		num_workers = len(self.model.orderings)
+
+		manager = Manager()
+		image = np.zeros(784)
+		track = np.zeros(784)
+
+		pool = []
+		for i in range(num_workers):
+			p = Process(target = fill_image, args=(image, track, i))
+			p.start()
+			pool.append(p)
+
+		for p in pool:
+			p.join()
+
+		image = torch.from_numpy(np.asarray(list(image)))
+		return image
 
 if __name__ == '__main__':
 	I = Inference('made_more_hiddens_8_orderings', '059_params.pt')
