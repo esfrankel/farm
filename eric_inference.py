@@ -16,14 +16,13 @@ class Inference:
 		self.model = torch.load(Path('./checkpoints') / exp / ckpt)
 		self.model = self.model.cuda()
 		self.model.eval()
-
-        flipped_orderings = []
-		for i in range(num_workers):
-			ordering = self.model.orderings[i]
-			flipped_order = flip_ordering(ordering)
-			flipped_orderings.append(flipped_order)
-
-        self.flipped_orderings = flipped_orderings
+        # flipped_orderings = []
+		# for i in range(num_workers):
+		# 	ordering = self.model.orderings[i]
+		# 	flipped_order = flip_ordering(ordering)
+		# 	flipped_orderings.append(flipped_order)
+        #
+        # self.flipped_orderings = flipped_orderings
 
     def fill_image(image, track, i):
         ordering = self.flipped_orderings[i] # chooses the ordering
