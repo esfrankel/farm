@@ -4,6 +4,7 @@ import numpy as numpy
 
 from made import MADE
 from inference import Inference
+from eric_inference import Inference as Eric_Inference
 from constants import *
 from util import *
 from tqdm import tqdm
@@ -85,6 +86,19 @@ def generate_experiment():
 	curr_time = time.now()
 	I_m.create_image_multiple_orderings()
 	print("Time taken is {}".format(time.now() - curr_time))
+
+def eric_generate_exp():
+	I_a = Inference('one_ordering_ten_samples', '059_params.pt')
+	I_b = Inference('two_ordering_ten_samples', '059_params.pt')
+
+	curr_time = time.now()
+	I_a.create_image_multiple_orderings()
+	print("Time taken is {}".format(time.now() - curr_time))
+
+	curr_time = time.now()
+	I_b.create_image_multiple_orderings()
+	print("Time taken is {}".format(time.now() - curr_time))
+
 
 
 if __name__ == '__main__':
