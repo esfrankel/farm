@@ -18,6 +18,36 @@ class Inference:
 		self.model = self.model.cuda()
 		self.model.eval()
 
+        flipped_orderings = []
+		for i in range(num_workers):
+			ordering = self.model.orderings[i]
+			flipped_order = flip_ordering(ordering)
+			flipped_orderings.append(flipped_order)
+
+        self.flipped_orderings = flipped_orderings
+
+    def fill_image(image, track, i):
+        ordering = self.flipped_orderings[i] # chooses the ordering
+        while np.sum(list(track)) < 784: # while it's not completely full
+            index = ordering[0] # gets the index it needs to fill next
+            while track[index] == 1: # while the current index it wants is filled
+                if len(ordering) == 1: # if that's the last one, then let's quit
+                    return
+
+                ordering = ordering[1:] # remove the first element of the ordering list since it's filled
+                index = ordering[0] # index gets updated
+
+            y = self.model(np.asarray(image)) # get model for y
+            logits = y[curr_fill_val]
+
+            B = Bernoulli(torch.sigmoid(logits))
+            sample = B.sample()
+            image[curr_fill_val] = sample
+
+            track[curr_fill_val] = 1
+
+        return
+
 
 	def sample_single_ordering(self, B):
 		'''Autoregressively samples a batch of size B with a single ordering.'''
@@ -94,28 +124,6 @@ class Inference:
 			ordering = self.model.orderings[i]
 			flipped_order = flip_ordering(ordering)
 			flipped_orderings.append(flipped_order)
-
-		def fill_image(image, track, i):
-			ordering = flipped_orderings[i] # chooses the ordering
-			while np.sum(list(track)) < 784: # while it's not completely full
-				index = ordering[0] # gets the index it needs to fill next
-				while track[index] == 1: # while the current index it wants is filled
-					if len(ordering) == 1: # if that's the last one, then let's quit
-						return
-
-					ordering = ordering[1:] # remove the first element of the ordering list since it's filled
-					index = ordering[0] # index gets updated
-
-				y = self.model(np.asarray(image)) # get model for y
-				logits = y[curr_fill_val]
-
-				B = Bernoulli(torch.sigmoid(logits))
-				sample = B.sample()
-				image[curr_fill_val] = sample
-
-				track[curr_fill_val] = 1
-
-			return
 
 		manager = Manager()
 		image = np.zeros(784)
