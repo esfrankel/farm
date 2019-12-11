@@ -4,7 +4,12 @@ import numpy as numpy
 
 from made import MADE
 from inference import Inference
+<<<<<<< HEAD
 from config import *
+=======
+from eric_inference import Inference as Eric_Inference
+from constants import *
+>>>>>>> 18248af650521e647daab3d6eefff87d0d33a0c0
 from util import *
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -12,6 +17,7 @@ from pathlib import Path
 
 import pickle
 
+from time import time
 
 # load the dataset
 mnist = np.load(DATA_PATH)
@@ -82,8 +88,7 @@ def occlusion_experiment_pair(id1, id2, ckpt1=99, ckpt2=99, case='avg', plot=Tru
 	B = k**2 # each occlusion mask is tested over B images
 
 	# nsteps = xte.shape[0] // B
-	nsteps = 5
-0
+	nsteps = 50
 	data = {}
 	l_1 = 0
 	l_m = 0
@@ -138,6 +143,40 @@ def occlusion_experiment_pair(id1, id2, ckpt1=99, ckpt2=99, case='avg', plot=Tru
 	pickle.dump(data, f)
 	f.close()
 
+def generate_experiment():
+	I_1 = Inference('made_eric_one_orderings', '059_params.pt')
+	I_m = Inference('made_eric_eight_orderings', '059_params.pt')
+
+	print('Exp1')
+	curr_time = time()
+	x1 = I_1.create_image_multiple_orderings(8)
+	print("Time taken is {}".format(time() - curr_time))
+
+	print('Exp2')
+	curr_time = time()
+	x2 = I_m.create_image_multiple_orderings(8)
+	print("Time taken is {}".format(time() - curr_time))
+
+	plt.imshow(x1_vis.to_numpy(), cmap='gray')
+	plt.savefig('./vis/gen_exp1.png')
+	plt.clf()
+	plt.imshow(x2_vis.to_numpy(), cmap='gray')
+	plt.savefig('./vis/gen_exp2.png')
+	plt.cllf()
+def eric_generate_exp():
+	I_a = Inference('made_one_ordering_ten_masks', '059_params.pt')
+	I_b = Inference('made_two_ordering_ten_masks', '059_params.pt')
+
+	print('Exp1')
+	curr_time = time()
+	I_a.create_image_multiple_orderings()
+	print("Time taken is {}".format(time() - curr_time))
+
+	print('Exp2')
+	curr_time = time()
+	I_b.create_image_multiple_orderings()
+	print("Time taken is {}".format(time() - curr_time))
+
 
 if __name__ == '__main__':
 	# occlusion_experiment_pair('mnist_one_ordering_1', 'mnist_2_ordering_1', 59, 59, 'avg', False)
@@ -186,4 +225,3 @@ if __name__ == '__main__':
 # python old_train.py -q=1000,1000 -s=4 -o=4 -k -m=dec9_4_kl
 # python old_train.py -q=1000,1000 -s=8 -o=8 -k -m=dec9_8_kl
 # python experiments.py
-

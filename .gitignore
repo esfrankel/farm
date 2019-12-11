@@ -1,4 +1,9 @@
 *.npy
 *.npz
 /checkpoints/*
+/vis/*
 /data/*
+*__pycache__*
+*models*
+*runs*
+*weight*
