@@ -4,8 +4,7 @@ Average occlusion reconstruction loss and NLL for dec9_2_normal:  0.065720817450
 Average occlusion reconstruction loss and NLL for dec9_4_normal:  0.06420222201012328 0.14332003226809115
 Average occlusion reconstruction loss and NLL for dec9_8_normal:  0.06407647977221533 0.13897660340847198
 Average occlusion reconstruction loss and NLL for dec9_1_multi:  0.09197886730956815 0.2631118518939101
-Average occlusion reconstruction loss and NLL for dec9_2_multi:  0.0683694183334483
-0.15909372064932722
+Average occlusion reconstruction loss and NLL for dec9_2_multi:  0.0683694183334483 0.15909372064932722
 Average occlusion reconstruction loss and NLL for dec9_4_multi:  0.07022694942910643 0.1570475617553103
 Average occlusion reconstruction loss and NLL for dec9_8_multi:  0.07327120197717768 0.18538712066999186
 Average occlusion reconstruction loss and NLL for dec9_1_kl:  0.09174436055277436 0.26190362415400353
@@ -14,30 +13,18 @@ Average occlusion reconstruction loss and NLL for dec9_4_kl:  0.0686981475199669
 Average occlusion reconstruction loss and NLL for dec9_8_kl:  0.0734801304706263 0.1760678704837365
 
 Results in avg case:
-Average occlusion reconstruction loss and NLL for dec9_1_normal:  0.1493388005940694
- 0.34609174108256807
-Average occlusion reconstruction loss and NLL for dec9_2_normal:  0.1338905608454072
- 0.2849370926180543
-Average occlusion reconstruction loss and NLL for dec9_4_normal:  0.1325400699732251
- 0.26176830197667167
-Average occlusion reconstruction loss and NLL for dec9_8_normal:  0.1339843581150735
-3 0.25985177663979575
-Average occlusion reconstruction loss and NLL for dec9_1_multi:  0.14922813514829572
- 0.34522860609774797
-Average occlusion reconstruction loss and NLL for dec9_2_multi:  0.1396975680777798
-0.2958416772359569
-Average occlusion reconstruction loss and NLL for dec9_4_multi:  0.14660100668894638
- 0.30244583145518783
-Average occlusion reconstruction loss and NLL for dec9_8_multi:  0.1577571660079374
-0.35057806452541695
-Average occlusion reconstruction loss and NLL for dec9_1_kl:  0.14897589343037615 0.
-34388085315370653
-Average occlusion reconstruction loss and NLL for dec9_2_kl:  0.14019629430846173 0.
-2930465124627662
-Average occlusion reconstruction loss and NLL for dec9_4_kl:  0.14550706238230346 0.
-29906802920647924
-Average occlusion reconstruction loss and NLL for dec9_8_kl:  0.15670666528602062 0.
-3393658403662221
+Average occlusion reconstruction loss and NLL for dec9_1_normal:  0.1493388005940694 0.34609174108256807
+Average occlusion reconstruction loss and NLL for dec9_2_normal:  0.1338905608454072 0.2849370926180543
+Average occlusion reconstruction loss and NLL for dec9_4_normal:  0.1325400699732251 0.26176830197667167
+Average occlusion reconstruction loss and NLL for dec9_8_normal:  0.13398435811507353 0.25985177663979575
+Average occlusion reconstruction loss and NLL for dec9_1_multi:  0.14922813514829572 0.34522860609774797
+Average occlusion reconstruction loss and NLL for dec9_2_multi:  0.1396975680777798 0.2958416772359569
+Average occlusion reconstruction loss and NLL for dec9_4_multi:  0.14660100668894638 0.30244583145518783
+Average occlusion reconstruction loss and NLL for dec9_8_multi:  0.15775716600793740.35057806452541695
+Average occlusion reconstruction loss and NLL for dec9_1_kl:  0.14897589343037615 0.34388085315370653
+Average occlusion reconstruction loss and NLL for dec9_2_kl:  0.14019629430846173 0.2930465124627662
+Average occlusion reconstruction loss and NLL for dec9_4_kl:  0.14550706238230346 0.29906802920647924
+Average occlusion reconstruction loss and NLL for dec9_8_kl:  0.15670666528602062 0.3393658403662221
 
 Results in botright case:
 Average occlusion reconstruction loss and NLL for dec9_1_normal:  0.08324472039664815 0.23730831577823341
@@ -47,8 +34,7 @@ Average occlusion reconstruction loss and NLL for dec9_8_normal:  0.080982818221
 Average occlusion reconstruction loss and NLL for dec9_1_multi:  0.08312927431156711 0.235873223167297
 Average occlusion reconstruction loss and NLL for dec9_2_multi:  0.08651280111773216 0.23129695316641793
 Average occlusion reconstruction loss and NLL for dec9_4_multi:  0.08861613393407819 0.21530251852713422
-Average occlusion reconstruction loss and NLL for dec9_8_multi:  0.0962532395518895
-0.251494412328784
+Average occlusion reconstruction loss and NLL for dec9_8_multi:  0.0962532395518895 0.251494412328784
 Average occlusion reconstruction loss and NLL for dec9_1_kl:  0.08359924822024332 0.23761935507288368
 Average occlusion reconstruction loss and NLL for dec9_2_kl:  0.08653070402434788 0.2280865597939333
 Average occlusion reconstruction loss and NLL for dec9_4_kl:  0.08976659746966874 0.21071573734424348
