@@ -2,3 +2,6 @@
 *.npz
 /checkpoints/*
 __pycache__
+*models*
+*runs*
+*weight*
