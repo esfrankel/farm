@@ -14,19 +14,21 @@ from pathlib import Path
 from tqdm import tqdm
 
 from made import MADE
-from constants import *
+from config import *
 
 
 # ------------------------------------------------------------------------------
 def run_epoch(split, upto=None, save_loc=""):
     torch.set_grad_enabled(split=='train') # enable/disable grad for efficiency of forwarding test batches
     model.train() if split == 'train' else model.eval()
-    nsamples = 1 if split == 'train' else args.samples
+    nsamples = args.samples
+    model.nsamples = nsamples
     x = xtr if split == 'train' else xte
     N,D = x.size()
     B = 100 # batch size
     nsteps = N//B if upto is None else min(N//B, upto)
     lossfs = []
+    kls = []
     for step in range(nsteps):
         
         # fetch the next batch of data
@@ -34,17 +36,35 @@ def run_epoch(split, upto=None, save_loc=""):
         
         # get the logits, potentially run the same batch a number of times, resampling each time
         xbhat = torch.zeros_like(xb)
+        total_w = torch.zeros_like(xb)
+        outs = []
+        weights = []
         for s in range(nsamples):
             # perform order/connectivity-agnostic training by resampling the masks
             model.update_masks(resample_hidden_masks=False)
-            if step % args.resample_every == 0 or split == 'test': # if in test, cycle masks every time
-                model.update_masks(resample_hidden_masks=True)
             # forward the model
-            xbhat += model(xb)
-        xbhat /= nsamples
+            w = torch.from_numpy(model.m[-1] + 1).cuda() # the ordering
+            out = model(xb)
+            outs.append(out)
+            weights.append(w)
+            xbhat += out * w
+            total_w += w
+
+        xbhat /= total_w
         
         # evaluate the binary cross entropy loss
         loss = F.binary_cross_entropy_with_logits(xbhat, xb, size_average=False) / B
+
+        if args.use_kl:
+            kl_loss = 0
+            for i in range(nsamples):
+                kl_loss += (F.kl_div(F.logsigmoid(outs[i]), F.sigmoid(xbhat), reduction='none') * weights[i])
+                # import pdb; pdb.set_trace()
+            kl_loss /= total_w
+            kl_loss = kl_loss.mean()
+            loss += kl_loss * 100 # tune the loss weight factor
+            kls.append(kl_loss.data.item())
+
         lossf = loss.data.item()
         lossfs.append(lossf)
         
@@ -54,11 +74,14 @@ def run_epoch(split, upto=None, save_loc=""):
             loss.backward()
             opt.step()
 
+        if step % args.resample_every == 0 or split == 'test': # if in test, cycle masks every time
+            model.update_masks(resample_hidden_masks=True)
+
     if save_loc != '':
         torch.save(model, save_loc)
         print('Model parameters saved to ' + str(save_loc))
         
-    # print("%s epoch average loss: %f" % (split, np.mean(lossfs)))
+    print("%s epoch average loss: %f (total); %f (KL)" % (split, np.mean(lossfs), np.mean(kls) if len(kls) > 0 else 0.0))
 # ------------------------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -68,6 +91,8 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--resample-every', type=int, default=20, help="For efficiency we can choose to resample orders/masks only once every this many steps")
     parser.add_argument('-s', '--samples', type=int, default=1, help="How many samples of connectivity/masks to average logits over during inference")
     parser.add_argument('-m', '--model-name', required=True, type=str, help="Name of model for save location")
+    parser.add_argument('-o', '--num-orderings', type=int, default=1, help="Number of orderings to use")
+    parser.add_argument('-k', '--use-kl', default=False, action='store_true', help="Whether to use KL loss")
     args = parser.parse_args()
     # --------------------------------------------------------------------------
     
@@ -88,8 +113,14 @@ if __name__ == '__main__':
     xte = torch.from_numpy(xte).cuda() # [10000, 784]
 
     # construct model and ship to GPU
+    o = {
+        1: [MNIST_ORDERINGS[i] for i in [0]],
+        2: [MNIST_ORDERINGS[i] for i in [0, 2]],
+        4: [MNIST_ORDERINGS[i] for i in [0, 2, 5, 7]],
+        8: [MNIST_ORDERINGS[i] for i in range(8)]
+    }
     hidden_list = list(map(int, args.hiddens.split(',')))
-    model = MADE(xtr.size(1), hidden_list, xtr.size(1), num_masks=args.num_masks, orderings=MNIST_ORDERINGS) # TODO: natural_ordering
+    model = MADE(xtr.size(1), hidden_list, xtr.size(1), num_masks=args.num_masks, orderings=o[args.num_orderings])
     print("number of model parameters:",sum([np.prod(p.size()) for p in model.parameters()]))
     model.cuda()
 
@@ -107,4 +138,3 @@ if __name__ == '__main__':
     
     print("optimization done. full test set eval:")
     run_epoch('test')
-

@@ -2,6 +2,8 @@
 =======
 Family of AutoRegressive Models
 
-https://arxiv.org/abs/1310.1757
+This is a content dump for CS 236. 
+
+There was some trouble in adding PixelCNN++ code as it was originally cloned and git acts weird with sub-repos. We have copied over most of the relevant changed files outside of the sub-repos.
 
 
