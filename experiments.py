@@ -212,16 +212,16 @@ if __name__ == '__main__':
 
 
 
-# python old_train.py -q=1000,1000 -o=1 -m=dec9_1_normal
-# python old_train.py -q=1000,1000 -o=2 -m=dec9_2_normal
-# python old_train.py -q=1000,1000 -o=4 -m=dec9_4_normal
-# python old_train.py -q=1000,1000 -o=8 -m=dec9_8_normal
-# python old_train.py -q=1000,1000 -s=1 -o=1 -m=dec9_1_multi
-# python old_train.py -q=1000,1000 -s=2 -o=2 -m=dec9_2_multi
-# python old_train.py -q=1000,1000 -s=4 -o=4 -m=dec9_4_multi
-# python old_train.py -q=1000,1000 -s=8 -o=8 -m=dec9_8_multi
-# python old_train.py -q=1000,1000 -s=1 -o=1 -k -m=dec9_1_kl
-# python old_train.py -q=1000,1000 -s=2 -o=2 -k -m=dec9_2_kl
-# python old_train.py -q=1000,1000 -s=4 -o=4 -k -m=dec9_4_kl
-# python old_train.py -q=1000,1000 -s=8 -o=8 -k -m=dec9_8_kl
+# python train.py -q=1000,1000 -o=1 -m=dec9_1_normal
+# python train.py -q=1000,1000 -o=2 -m=dec9_2_normal
+# python train.py -q=1000,1000 -o=4 -m=dec9_4_normal
+# python train.py -q=1000,1000 -o=8 -m=dec9_8_normal
+# python train.py -q=1000,1000 -s=1 -o=1 -m=dec9_1_multi
+# python train.py -q=1000,1000 -s=2 -o=2 -m=dec9_2_multi
+# python train.py -q=1000,1000 -s=4 -o=4 -m=dec9_4_multi
+# python train.py -q=1000,1000 -s=8 -o=8 -m=dec9_8_multi
+# python train.py -q=1000,1000 -s=1 -o=1 -k -m=dec9_1_kl
+# python train.py -q=1000,1000 -s=2 -o=2 -k -m=dec9_2_kl
+# python train.py -q=1000,1000 -s=4 -o=4 -k -m=dec9_4_kl
+# python train.py -q=1000,1000 -s=8 -o=8 -k -m=dec9_8_kl
 # python experiments.py
